@@ -1,5 +1,5 @@
 FROM rocker/shiny-verse
-COPY ./packages.R packages.R
+COPY ./packages.r packages.r
 RUN Rscript packages.r
 EXPOSE 3838
 ADD chem_gen_explorer .
