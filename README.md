@@ -24,6 +24,8 @@ from the command line.
 
 ## Usage
 
+Access the shiny app by ging to `http://0.0.0.0:3838` in your browser.
+
 TODO
 
 ## Contributions
