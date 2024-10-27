@@ -26,3 +26,7 @@ from the command line.
 
 TODO
 
+## Contributions
+
+If you find a bug or have any suggestions, please open up a ticket :)
+
