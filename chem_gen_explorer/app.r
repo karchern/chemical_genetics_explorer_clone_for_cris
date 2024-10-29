@@ -1,6 +1,5 @@
 library(tidyverse)
 library(GGally)
-library(here)
 library(shiny)
 library(ComplexHeatmap)
 library(InteractiveComplexHeatmap)
