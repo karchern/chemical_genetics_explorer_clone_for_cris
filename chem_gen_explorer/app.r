@@ -21,8 +21,7 @@ make_heatmap <- function(correlation_matrix = NULL, dendrogram) {
     ht <- Heatmap(correlation_matrix,
         name = "effect size",
         show_row_names = FALSE, show_column_names = FALSE,
-        show_row_dend = FALSE,
-        cluster_rows
+        show_row_dend = FALSE
     )
     ht <- draw(ht, merge_legend = TRUE)
     ht
@@ -125,7 +124,11 @@ ui <- dashboardPage(
         # numericInput("base_mean", label = "Minimal base mean:", value = 0),
         # numericInput("log2fc", label = "Minimal abs(log2 fold change):", value = 0),
         # actionButton("filter", label = "Generate heatmap")
-        sliderInput("range", min = 0, max = 100, value = c(0, 100), label = "percentages to subselect things to."),
+        # sliderInput("range", min = 0, max = 100, value = c(0, 100), label = "percentages to subselect things to."),
+        radioButtons("range",
+            label = "Which part of the correlation matrix to show?",
+            choices = list("1st third" = "0_33", "2nd third" = "33_66", "3rd third" = "66_100", "Everything" = "0_100"),
+        ),
         # sliderInput("heatmaprangehigh", min = 50, max = 100, value = 100, label = "higher percentage of input genes to show"),
         textAreaInput("genes_to_viz", label = "Comma-separated list of genes"),
         actionButton("viz_specified_genes", label = "Subset heatmap!")
@@ -150,8 +153,8 @@ server <- function(input, output, session) {
     )
 
     observeEvent(input$range, {
-        subset_perc_low <- input$range[1]
-        subset_perc_high <- input$range[2]
+        subset_perc_low <- as.numeric(str_split(input$range, "_")[[1]][1])
+        subset_perc_high <- as.numeric(str_split(input$range, "_")[[1]][2])
 
         assign_list_entries_to_global_env(load_all(
             fitness_data_path = "Buni_compiled.csv",
