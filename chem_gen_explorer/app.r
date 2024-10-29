@@ -10,6 +10,9 @@ library(shinydashboard)
 library(DT)
 
 source("app_utils.r")
+
+env <- new.env() # This is crucial for this app, so don't remove!
+
 fitness_data <- read_csv("Buni_compiled.csv") %>%
     select(Name, scaledLFC, contrast, FDR) %>%
     rename(
@@ -46,31 +49,20 @@ stopifnot(all(rownames(fitness_data) == colnames(correlation_matrix)))
 stopifnot(all(rownames(fitness_data) == rownames(annotations)))
 stopifnot(all(rownames(fitness_data) == rownames(annotations_boolean)))
 
-env <- new.env() # This is crucial for shiny to work
 make_heatmap <- function() {
     l <- rep(TRUE, dim(correlation_matrix)[1])
     env$row_index <- which(l)
 
     ht <- Heatmap(correlation_matrix,
         name = "effect size",
-        # top_annotation = HeatmapAnnotation(
-        #     dex = colData(dds)$dex,
-        #     sizeFactor = anno_points(colData(dds)$sizeFactor)
-        # ),
         show_row_names = FALSE, show_column_names = FALSE,
-        # column_title = paste0(sum(l), " significant genes with FDR < ", "DUMMY"),
         show_row_dend = FALSE
-        # ) +
     )
     ht <- draw(ht, merge_legend = TRUE)
     ht
 }
 
 make_sub_heatmap <- function(res, highlight = NULL) {
-    if (is.character(highlight)) {
-        highlight <- str_replace_all(highlight, " ", "")
-        highlight <- str_split(highlight, ",")[[1]]
-    }
     tryCatch(
         expr = {
             ht <- Heatmap(res[highlight, ],
@@ -90,20 +82,6 @@ make_sub_heatmap <- function(res, highlight = NULL) {
 }
 
 make_pw_scatter <- function(res, highlight = NULL) {
-    # print(highlight)
-    # if (!is.null(highlight)) {
-    #     res <- res[highlight, ]
-    # } else {
-    #     return(pairs(t(res[highlight, ])))
-    # }
-    if (is.character(highlight)) {
-        highlight <- str_replace_all(highlight, " ", "")
-        highlight <- str_replace_all(highlight, "\n", "")
-        # also remove white spaces..
-
-
-        highlight <- str_split(highlight, ",")[[1]]
-    }
     tryCatch(
         expr = pairs(t(res[highlight, ])),
         error = function(e) {
@@ -248,7 +226,8 @@ ui <- dashboardPage(
         # numericInput("base_mean", label = "Minimal base mean:", value = 0),
         # numericInput("log2fc", label = "Minimal abs(log2 fold change):", value = 0),
         # actionButton("filter", label = "Generate heatmap")
-        sliderInput("heatmaprange", min = 0, max = 100, value = 50, label = "Range of input genes to show in big heatmap"),
+        sliderInput("heatmaprangelow", min = 0, max = 50, value = 0, label = "lower percentage of input genes to show"),
+        sliderInput("heatmaprangehigh", min = 50, max = 100, value = 100, label = "higher percentage of input genes to show"),
         textAreaInput("genes_to_viz", label = "Comma-separated list of genes"),
         actionButton("viz_specified_genes", label = "Subset heatmap!")
     ),
@@ -262,12 +241,16 @@ server <- function(input, output, session) {
     )
     observeEvent(input$viz_specified_genes,
         {
+            selected <- prep_char_selection(input$genes_to_viz)
             output[["pairwise_scatters"]] <- renderPlot({
-                make_pw_scatter(fitness_data, input$genes_to_viz)
+                make_pw_scatter(fitness_data, selected)
             })
             output[["sub_heatmap"]] <- renderPlot({
-                make_sub_heatmap(fitness_data, input$genes_to_viz)
+                make_sub_heatmap(fitness_data, selected)
             })
+            output[["res_table"]] <- renderDT(
+                datatable(annotations[selected, ], rownames = TRUE)
+            )
         },
         ignoreNULL = FALSE
     )

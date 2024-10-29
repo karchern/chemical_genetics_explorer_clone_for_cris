@@ -38,3 +38,13 @@ make_annot_col_bool <- function(co) {
         TRUE ~ "Annot"
     ), levels = c("No annot.", "Annot"))
 }
+
+prep_char_selection <- function(highlight) {
+    if (is.character(highlight)) {
+        highlight <- str_replace_all(highlight, " ", "")
+        highlight <- str_replace_all(highlight, "\n", "")
+        # also remove white spaces..
+        highlight <- str_split(highlight, ",")[[1]]
+    }
+    return(highlight)
+}
