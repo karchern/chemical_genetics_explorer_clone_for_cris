@@ -109,3 +109,11 @@ load_all <- function(
         )
     )
 }
+
+assign_list_entries_to_global_env <- function(li) {
+    for (entry_i in 1:length(li)[1]) {
+        na <- names(li)[entry_i]
+        entry <- li[[entry_i]]
+        assign(na, entry, .GlobalEnv)
+    }
+}

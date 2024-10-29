@@ -134,21 +134,12 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) {
     # loads fitness_data and annotations; computes correlation_matrix, ensures data integrity.
-    all_data <- load_all(
+    assign_list_entries_to_global_env(load_all(
         fitness_data_path = "Buni_compiled.csv",
         annotations_path = "essentiality_table_all_libraries_240818.csv",
         subset_perc_low = 0,
         subset_perc_high = 100
-    )
-    fitness_data <- all_data$fitness_data
-    annotations <- all_data$annotations
-    annotations_boolean <- all_data$annotations_boolean
-    correlation_matrix <- all_data$correlation_matrix
-    # Assign objects to global environment - crucial!
-    assign("fitness_data", fitness_data, .GlobalEnv)
-    assign("annotations", annotations, .GlobalEnv)
-    assign("annotations_boolean", annotations_boolean, .GlobalEnv)
-    assign("correlation_matrix", correlation_matrix, .GlobalEnv)
+    ))
 
     ht <- make_heatmap(
         correlation_matrix
