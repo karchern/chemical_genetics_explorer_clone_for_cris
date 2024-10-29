@@ -100,20 +100,6 @@ brush_action <- function(df, input, output, session) {
     output[["current_selection_textbox"]] <- renderText({
         str_c(rownames(fitness_data)[selected], collapse = ",")
     })
-
-    output[["note"]] <- renderUI({
-        if (!is.null(df)) {
-            HTML(qq("<p>Row indices captured in <b>Output</b> only correspond to the matrix of the differential genes. To get the row indices in the original matrix, you need to perform:</p>
-    <pre>
-    l = res$padj <= @{input$fdr} &
-        res$baseMean >= @{input$base_mean} &
-        abs(res$log2FoldChange) >= @{input$log2fc}
-    l[is.na(l)] = FALSE
-    which(l)[row_index]
-    </pre>
-    <p>where <code>res</code> is the complete data frame from DESeq2 analysis and <code>row_index</code> is the <code>row_index</code> column captured from the code in <b>Output</b>.</p>"))
-        }
-    })
 }
 
 ui <- dashboardPage(
