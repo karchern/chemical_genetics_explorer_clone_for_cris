@@ -15,6 +15,8 @@ source("make_pw_scatter.r")
 
 env <- new.env() # This is crucial for this app, so don't remove!
 
+options(shiny.maxRequestSize = 30 * 1024^2)
+
 make_heatmap <- function(correlation_matrix = NULL, dendrogram) {
     env$row_index <- 1:dim(correlation_matrix)[1]
 
@@ -105,16 +107,13 @@ brush_action <- function(df, input, output, session) {
 ui <- dashboardPage(
     dashboardHeader(title = "Chemical genetics data explorer"),
     dashboardSidebar(
-        # selectInput("fdr", label = "Cutoff for FDRs:", c("0.001" = 0.001, "0.01" = 0.01, "0.05" = 0.05)),
-        # numericInput("base_mean", label = "Minimal base mean:", value = 0),
-        # numericInput("log2fc", label = "Minimal abs(log2 fold change):", value = 0),
-        # actionButton("filter", label = "Generate heatmap")
-        # sliderInput("range", min = 0, max = 100, value = c(0, 100), label = "percentages to subselect things to."),
         radioButtons("range",
             label = "Which part of the correlation matrix to show?",
             choices = list("1st third" = "0_33", "2nd third" = "33_66", "3rd third" = "66_100", "Everything" = "0_100"),
         ),
-        # sliderInput("heatmaprangehigh", min = 50, max = 100, value = 100, label = "higher percentage of input genes to show"),
+        fileInput("fitness_data", "Upload fitness table"),
+        fileInput("annotation_data", "Upload annotation table"),
+        actionButton("load_input_data", label = "Load input data"),
         textAreaInput("genes_to_viz", label = "Comma-separated list of genes"),
         actionButton("viz_specified_genes", label = "Subset heatmap!")
     ),
@@ -123,30 +122,52 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) {
     # loads fitness_data and annotations; computes correlation_matrix, ensures data integrity.
-    assign_list_entries_to_global_env(load_all(
-        fitness_data_path = "Buni_compiled.csv",
-        annotations_path = "essentiality_table_all_libraries_240818.csv",
-        subset_perc_low = 0,
-        subset_perc_high = 100
-    ))
+    observeEvent(input$load_input_data, {
+        subset_perc_low <- as.numeric(str_split(input$range, "_")[[1]][1])
+        subset_perc_high <- as.numeric(str_split(input$range, "_")[[1]][2])
+        tryCatch(
+            assign_list_entries_to_global_env(load_all(
+                # fitness_data_path = "Buni_compiled.csv",
+                fitness_data_path = input$fitness_data$datapath,
+                # annotations_path = "essentiality_table_all_libraries_240818.csv",
+                annotations_path = input$annotation_data$datapath,
+                subset_perc_low = subset_perc_low,
+                subset_perc_high = subset_perc_high
+            )),
+            error = function(e) {
+                print("Loading of data failed, make sure to set both fitness and annotation data...")
+            }
+        )
 
-    ht <- make_heatmap(
-        correlation_matrix
-    )
-    makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
-        brush_action = brush_action
-    )
+        ht <- make_heatmap(
+            correlation_matrix
+        )
+        makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
+            brush_action = brush_action
+        )
+    })
 
     observeEvent(input$range, {
+        if (is.null(input$fitness_data)) {
+            return()
+        }
+
         subset_perc_low <- as.numeric(str_split(input$range, "_")[[1]][1])
         subset_perc_high <- as.numeric(str_split(input$range, "_")[[1]][2])
 
-        assign_list_entries_to_global_env(load_all(
-            fitness_data_path = "Buni_compiled.csv",
-            annotations_path = "essentiality_table_all_libraries_240818.csv",
-            subset_perc_low = subset_perc_low,
-            subset_perc_high = subset_perc_high
-        ))
+        tryCatch(
+            assign_list_entries_to_global_env(load_all(
+                # fitness_data_path = "Buni_compiled.csv",
+                fitness_data_path = input$fitness_data$datapath,
+                # annotations_path = "essentiality_table_all_libraries_240818.csv",
+                annotations_path = input$annotation_data$datapath,
+                subset_perc_low = subset_perc_low,
+                subset_perc_high = subset_perc_high
+            )),
+            error = function(e) {
+                print("Loading of data failed, make sure to set both fitness and annotation data...")
+            }
+        )
 
         ht <- make_heatmap(
             correlation_matrix
@@ -158,6 +179,9 @@ server <- function(input, output, session) {
 
     observeEvent(input$viz_specified_genes,
         {
+            if (is.null(input$fitness_data)) {
+                return()
+            }
             selected <- prep_char_selection(input$genes_to_viz)
             output[["pairwise_scatters"]] <- renderPlot({
                 make_pw_scatter(fitness_data, selected)
