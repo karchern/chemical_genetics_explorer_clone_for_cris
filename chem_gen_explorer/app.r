@@ -10,24 +10,13 @@ library(shinydashboard)
 library(DT)
 
 source("app_utils.r")
+source("make_sub_heatmap.r")
+source("make_pw_scatter.r")
 
 env <- new.env() # This is crucial for this app, so don't remove!
 
-# loads fitness_data and annotations; computes correlation_matrix, ensures data integrity
-all_data <- load_all(
-    fitness_data_path = "Buni_compiled.csv",
-    annotations_path = "essentiality_table_all_libraries_240818.csv",
-    subset_perc_low = 0,
-    subset_perc_high = 100
-)
-fitness_data <- all_data$fitness_data
-annotations <- all_data$annotations
-annotations_boolean <- all_data$annotations_boolean
-correlation_matrix <- all_data$correlation_matrix
-
-make_heatmap <- function() {
-    l <- rep(TRUE, dim(correlation_matrix)[1])
-    env$row_index <- which(l)
+make_heatmap <- function(correlation_matrix = NULL) {
+    env$row_index <- 1:dim(correlation_matrix)[1]
 
     ht <- Heatmap(correlation_matrix,
         name = "effect size",
@@ -38,36 +27,6 @@ make_heatmap <- function() {
     ht
 }
 
-make_sub_heatmap <- function(res, highlight = NULL) {
-    tryCatch(
-        expr = {
-            ht <- Heatmap(res[highlight, ],
-                right_annotation = rowAnnotation(df = annotations_boolean[highlight, ], col = annot_columns_of_interest_colors),
-                name = " ",
-                show_row_names = TRUE, show_column_names = TRUE,
-                show_row_dend = FALSE, show_column_dend = FALSE,
-                column_names_gp = grid::gpar(fontsize = 14),
-                row_names_gp = grid::gpar(fontsize = 14)
-            )
-            ht <- draw(ht, merge_legend = TRUE)
-            ht
-        },
-        error = function(e) {
-            print("Error in make_sub_heatmap:")
-            print(e)
-        }
-    )
-}
-
-make_pw_scatter <- function(res, highlight = NULL) {
-    tryCatch(
-        expr = pairs(t(res[highlight, ])),
-        error = function(e) {
-            print("Error in make_pw_scatter:")
-            print(e)
-        }
-    )
-}
 body <- dashboardBody(
     fluidRow(
         column(
@@ -77,47 +36,6 @@ body <- dashboardBody(
                 originalHeatmapOutput("ht", height = 1500, width = 1500, containment = TRUE)
             )
         )
-        # fluidRow(
-        #     column(
-        #         width = 8,
-        #         height = 8,
-        #         box(
-        #             title = "Pairwise scatter plots", width = NULL, solidHeader = TRUE, status = "primary",
-        #             plotOutput("pairwise_scatters")
-        #         )
-        #         # box(
-        #         #     title = "Output", width = NULL, solidHeader = TRUE, status = "primary",
-        #         #     HeatmapInfoOutput("ht", title = NULL)
-        #         # ),
-        #         # box(
-        #         #     title = "Note", width = NULL, solidHeader = TRUE, status = "primary",
-        #         #     htmlOutput("note")
-        #         # ),
-        #     ),
-        #     # column(
-        #     #     width = 4,
-        #     #     box(
-        #     #         title = "MA-plot", width = NULL, solidHeader = TRUE, status = "primary",
-        #     #         plotOutput("ma_plot")
-        #     #     ),
-        #     #     box(
-        #     #         title = "Volcanno plot", width = NULL, solidHeader = TRUE, status = "primary",
-        #     #         plotOutput("volcanno_plot")
-        #     #     ),
-        #     #     box(
-        #     #         title = "Result table of the selected genes", width = NULL, solidHeader = TRUE, status = "primary",
-        #     #         DTOutput("res_table")
-        #     #     )
-        #     # ),
-        #     tags$style("
-        #         .content-wrapper, .right-side {
-        #             overflow-x: auto;
-        #         }
-        #         .content {
-        #             min-width:1500px;
-        #         }
-        #     ")
-        # )
     ),
     fluidRow(
         column(
@@ -215,7 +133,26 @@ ui <- dashboardPage(
 )
 
 server <- function(input, output, session) {
-    ht <- make_heatmap()
+    # loads fitness_data and annotations; computes correlation_matrix, ensures data integrity.
+    all_data <- load_all(
+        fitness_data_path = "Buni_compiled.csv",
+        annotations_path = "essentiality_table_all_libraries_240818.csv",
+        subset_perc_low = 0,
+        subset_perc_high = 100
+    )
+    fitness_data <- all_data$fitness_data
+    annotations <- all_data$annotations
+    annotations_boolean <- all_data$annotations_boolean
+    correlation_matrix <- all_data$correlation_matrix
+    # Assign objects to global environment - crucial!
+    assign("fitness_data", fitness_data, .GlobalEnv)
+    assign("annotations", annotations, .GlobalEnv)
+    assign("annotations_boolean", annotations_boolean, .GlobalEnv)
+    assign("correlation_matrix", correlation_matrix, .GlobalEnv)
+
+    ht <- make_heatmap(
+        correlation_matrix
+    )
     makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
         brush_action = brush_action
     )
