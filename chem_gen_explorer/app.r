@@ -15,7 +15,7 @@ source("make_pw_scatter.r")
 
 env <- new.env() # This is crucial for this app, so don't remove!
 
-make_heatmap <- function(correlation_matrix = NULL) {
+make_heatmap <- function(correlation_matrix = NULL, dendrogram) {
     env$row_index <- 1:dim(correlation_matrix)[1]
 
     ht <- Heatmap(correlation_matrix,
@@ -124,8 +124,12 @@ ui <- dashboardPage(
         # numericInput("base_mean", label = "Minimal base mean:", value = 0),
         # numericInput("log2fc", label = "Minimal abs(log2 fold change):", value = 0),
         # actionButton("filter", label = "Generate heatmap")
-        sliderInput("heatmaprangelow", min = 0, max = 50, value = 0, label = "lower percentage of input genes to show"),
-        sliderInput("heatmaprangehigh", min = 50, max = 100, value = 100, label = "higher percentage of input genes to show"),
+        # sliderInput("range", min = 0, max = 100, value = c(0, 100), label = "percentages to subselect things to."),
+        radioButtons("range",
+            label = "Which part of the correlation matrix to show?",
+            choices = list("1st third" = "0_33", "2nd third" = "33_66", "3rd third" = "66_100", "Everything" = "0_100"),
+        ),
+        # sliderInput("heatmaprangehigh", min = 50, max = 100, value = 100, label = "higher percentage of input genes to show"),
         textAreaInput("genes_to_viz", label = "Comma-separated list of genes"),
         actionButton("viz_specified_genes", label = "Subset heatmap!")
     ),
@@ -147,6 +151,26 @@ server <- function(input, output, session) {
     makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
         brush_action = brush_action
     )
+
+    observeEvent(input$range, {
+        subset_perc_low <- as.numeric(str_split(input$range, "_")[[1]][1])
+        subset_perc_high <- as.numeric(str_split(input$range, "_")[[1]][2])
+
+        assign_list_entries_to_global_env(load_all(
+            fitness_data_path = "Buni_compiled.csv",
+            annotations_path = "essentiality_table_all_libraries_240818.csv",
+            subset_perc_low = subset_perc_low,
+            subset_perc_high = subset_perc_high
+        ))
+
+        ht <- make_heatmap(
+            correlation_matrix
+        )
+        makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
+            brush_action = brush_action
+        )
+    })
+
     observeEvent(input$viz_specified_genes,
         {
             selected <- prep_char_selection(input$genes_to_viz)

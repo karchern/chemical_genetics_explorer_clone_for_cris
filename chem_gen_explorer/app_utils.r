@@ -88,6 +88,13 @@ ensure_data_concordance <- function(
     stopifnot(all(rownames(fitness_data) == rownames(annotations)))
 }
 
+get_indices_from_heatmap_range <- function(num_rows, subset_perc_low, subset_perc_high) {
+    i_low <- round(num_rows * subset_perc_low / 100)
+    i_high <- round(num_rows * subset_perc_high / 100)
+    return(list(i_low = i_low, i_high = i_high))
+}
+
+
 load_all <- function(
     fitness_data_path = NULL,
     annotations_path = NULL,
@@ -95,17 +102,21 @@ load_all <- function(
     subset_perc_high = NULL,
     cor_meth = "pearson") {
     fitness_data <- load_fitness_data(fitness_data_path)
+    fi <- get_indices_from_heatmap_range(nrow(fitness_data), subset_perc_low, subset_perc_high)
+    fitness_data <- fitness_data[fi$i_low:fi$i_high, ]
     annotations <- load_annotations(annotations_path, fitness_data)
     annotations_boolean <- annotations %>%
         mutate_all(make_annot_col_bool)
     correlation_matrix <- cor(t(fitness_data), method = cor_meth)
+    hclusto <- hclust(dist(correlation_matrix))
     ensure_data_concordance()
     return(
         list(
             "fitness_data" = fitness_data,
             "annotations" = annotations,
             "annotations_boolean" = annotations_boolean,
-            "correlation_matrix" = correlation_matrix
+            "correlation_matrix" = correlation_matrix,
+            "hclust_object" = hclusto
         )
     )
 }
