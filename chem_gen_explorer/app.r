@@ -13,41 +13,17 @@ source("app_utils.r")
 
 env <- new.env() # This is crucial for this app, so don't remove!
 
-fitness_data <- read_csv("Buni_compiled.csv") %>%
-    select(Name, scaledLFC, contrast, FDR) %>%
-    rename(
-        gene = Name,
-        log2fc_scaled = scaledLFC,
-        condition = contrast,
-        fdr = FDR
-    ) %>%
-    mutate(log2fc_scaled_empbayes = log2fc_scaled * (1 - fdr)) %>%
-    pivot_wider(names_from = condition, id_cols = gene, values_from = log2fc_scaled_empbayes, values_fill = 0) %>%
-    column_to_rownames("gene") %>%
-    as.matrix()
-
-correlation_matrix <- cor(t(fitness_data), method = "pearson")
-
-annotations <- read_csv("essentiality_table_all_libraries_240818.csv")
-annotations <- annotations[annotations$locus_tag %in% rownames(fitness_data), ] %>%
-    select(
-        all_of(annot_columns_of_interest) # comes from chemical_genetics_utils.r
-    ) %>%
-    distinct()
-annotations <- annotations[match(rownames(fitness_data), annotations$locus_tag), ]
-annotations_boolean <- annotations %>%
-    mutate(across(-c(locus_tag), make_annot_col_bool))
-annotations <- annotations %>%
-    column_to_rownames("locus_tag") %>%
-    as.data.frame()
-annotations_boolean <- annotations_boolean %>%
-    column_to_rownames("locus_tag") %>%
-    as.data.frame()
-
-stopifnot(all(dim(fitness_data)[1] == dim(correlation_matrix)[1]))
-stopifnot(all(rownames(fitness_data) == colnames(correlation_matrix)))
-stopifnot(all(rownames(fitness_data) == rownames(annotations)))
-stopifnot(all(rownames(fitness_data) == rownames(annotations_boolean)))
+# loads fitness_data and annotations; computes correlation_matrix, ensures data integrity
+all_data <- load_all(
+    fitness_data_path = "Buni_compiled.csv",
+    annotations_path = "essentiality_table_all_libraries_240818.csv",
+    subset_perc_low = 0,
+    subset_perc_high = 100
+)
+fitness_data <- all_data$fitness_data
+annotations <- all_data$annotations
+annotations_boolean <- all_data$annotations_boolean
+correlation_matrix <- all_data$correlation_matrix
 
 make_heatmap <- function() {
     l <- rep(TRUE, dim(correlation_matrix)[1])
@@ -77,6 +53,8 @@ make_sub_heatmap <- function(res, highlight = NULL) {
             ht
         },
         error = function(e) {
+            print("Error in make_sub_heatmap:")
+            print(e)
         }
     )
 }
@@ -85,6 +63,8 @@ make_pw_scatter <- function(res, highlight = NULL) {
     tryCatch(
         expr = pairs(t(res[highlight, ])),
         error = function(e) {
+            print("Error in make_pw_scatter:")
+            print(e)
         }
     )
 }
