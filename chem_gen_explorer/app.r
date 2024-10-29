@@ -39,11 +39,11 @@ body <- dashboardBody(
     ),
     fluidRow(
         column(
-            width = 12,
+            width = 4,
             id = "column2",
             box(
                 title = "Fitness data of subselection", width = NULL, solidHeader = TRUE, status = "primary",
-                plotOutput("sub_heatmap", height = "400px")
+                plotOutput("sub_heatmap", width = "600px", height = "1500px")
             ),
             # column(
             #     width = 4,
@@ -56,34 +56,24 @@ body <- dashboardBody(
             #         plotOutput("volcanno_plot")
             #     ),
             # ),
-            tags$style("
-            .content-wrapper, .right-side {
-                overflow-x: auto;
-            }
-            .content {
-                min-width:1500px;
-            }
-        ")
-        )
-    ),
-    fluidRow(
+        ),
         column(
-            width = 6, # Adjust the width as needed (total should be 12)
-            box(
-                title = "Pairwise scatter of effect sizes", width = NULL, solidHeader = TRUE, status = "primary",
-                plotOutput("pairwise_scatters", height = "600px")
-            )
-        )
-    ),
-    fluidRow(
-        column(
-            width = 12,
+            width = 8,
             box(
                 title = "Annotations of highlighted genes", width = NULL, solidHeader = TRUE, status = "primary",
                 DTOutput("res_table")
+            ),
+            fluidRow(
+                column(
+                    width = 12, # Adjust the width as needed (total should be 12)
+                    box(
+                        title = "Pairwise scatter of effect sizes", width = NULL, solidHeader = TRUE, status = "primary",
+                        plotOutput("pairwise_scatters", height = "900px")
+                    )
+                )
             )
         )
-    )
+    ),
 )
 
 brush_action <- function(df, input, output, session) {
