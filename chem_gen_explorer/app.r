@@ -19,6 +19,7 @@ options(shiny.maxRequestSize = 30 * 1024^2)
 
 make_heatmap <- function(correlation_matrix = NULL, dendrogram) {
     env$row_index <- 1:dim(correlation_matrix)[1]
+    env$column_index <- 1:dim(correlation_matrix)[2]
 
     ht <- Heatmap(correlation_matrix,
         name = "effect size",
@@ -85,7 +86,9 @@ body <- dashboardBody(
 
 brush_action <- function(df, input, output, session) {
     row_index <- unique(unlist(df$row_index))
-    selected <- env$row_index[row_index]
+    coluumn_index <- unique(unlist(df$column_index))
+    inters <- union(row_index, coluumn_index)
+    selected <- env$row_index[inters]
 
     output[["sub_heatmap"]] <- renderPlot({
         make_sub_heatmap(fitness_data, selected)
