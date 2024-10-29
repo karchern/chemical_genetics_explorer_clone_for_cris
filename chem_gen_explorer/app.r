@@ -76,6 +76,7 @@ body <- dashboardBody(
     ),
 )
 
+
 brush_action <- function(df, input, output, session) {
     row_index <- unique(unlist(df$row_index))
     selected <- env$row_index[row_index]
