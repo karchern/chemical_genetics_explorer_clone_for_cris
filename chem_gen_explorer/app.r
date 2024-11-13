@@ -109,6 +109,7 @@ brush_action <- function(df, input, output, session) {
 ui <- dashboardPage(
     dashboardHeader(title = "Chemical genetics data explorer"),
     dashboardSidebar(
+        actionButton("load_default_input_data", label = HTML("Load default input data<br>(for debugging only!)")),
         radioButtons("range",
             label = "Which part of the correlation matrix to show?",
             choices = list(
@@ -126,8 +127,7 @@ ui <- dashboardPage(
         textAreaInput("genes_to_viz", label = "Comma-separated list of genes"),
         actionButton("trigger_genes_to_viz", label = "Subset heatmap!"),
         textInput("gene_you_want_to_zoom_in_on", label = "gene of interest (correlated genes will be highlighted)"),
-        actionButton("trigger_gene_you_want_to_zoom_in_on", label = "Zoom in on gene!"),
-        actionButton("load_default_input_data", label = "Load default input data (for debugging only!)")
+        actionButton("trigger_gene_you_want_to_zoom_in_on", label = "Zoom in on gene!")
     ),
     body
 )
@@ -238,11 +238,8 @@ server <- function(input, output, session) {
 
     observeEvent(input$trigger_gene_you_want_to_zoom_in_on,
         {
-            if (is.null(input$fitness_data)) {
-                return()
-            }
-            # selected <- prep_char_selection(input$genes_to_viz)
-            browser()
+            gene_index_of_interest <- which(rownames(correlation_matrix) == input$gene_you_want_to_zoom_in_on)
+            selected <- order(correlation_matrix[gene_index_of_interest, ], decreasing = TRUE)[1:5]
             output[["pairwise_scatters"]] <- renderPlot({
                 make_pw_scatter(fitness_data, selected)
             })
@@ -256,7 +253,8 @@ server <- function(input, output, session) {
                 str_c(rownames(fitness_data)[selected], collapse = ",")
             })
         },
-        ignoreNULL = FALSE
+        ignoreNULL = FALSE,
+        ignoreInit = TRUE
     )
 }
 
