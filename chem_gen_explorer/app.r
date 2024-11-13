@@ -124,7 +124,9 @@ ui <- dashboardPage(
         fileInput("annotation_data", "Upload annotation table"),
         actionButton("load_input_data", label = "Load input data"),
         textAreaInput("genes_to_viz", label = "Comma-separated list of genes"),
-        actionButton("viz_specified_genes", label = "Subset heatmap!")
+        actionButton("trigger_genes_to_viz", label = "Subset heatmap!"),
+        textInput("gene_you_want_to_zoom_in_on", label = "gene of interest (correlated genes will be highlighted)"),
+        actionButton("trigger_gene_you_want_to_zoom_in_on", label = "Zoom in on gene!")
     ),
     body
 )
@@ -186,7 +188,7 @@ server <- function(input, output, session) {
         )
     })
 
-    observeEvent(input$viz_specified_genes,
+    observeEvent(input$trigger_genes_to_viz,
         {
             if (is.null(input$fitness_data)) {
                 return()
