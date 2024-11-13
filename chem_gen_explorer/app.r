@@ -7,10 +7,11 @@ library(circlize)
 library(GetoptLong)
 library(shinydashboard)
 library(DT)
+library(here)
 
-source("app_utils.r")
-source("make_sub_heatmap.r")
-source("make_pw_scatter.r")
+source(here("chem_gen_explorer", "app_utils.r"))
+source(here("chem_gen_explorer", "make_sub_heatmap.r"))
+source(here("chem_gen_explorer", "make_pw_scatter.r"))
 
 env <- new.env() # This is crucial for this app, so don't remove!
 
