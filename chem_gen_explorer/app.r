@@ -126,7 +126,8 @@ ui <- dashboardPage(
         textAreaInput("genes_to_viz", label = "Comma-separated list of genes"),
         actionButton("trigger_genes_to_viz", label = "Subset heatmap!"),
         textInput("gene_you_want_to_zoom_in_on", label = "gene of interest (correlated genes will be highlighted)"),
-        actionButton("trigger_gene_you_want_to_zoom_in_on", label = "Zoom in on gene!")
+        actionButton("trigger_gene_you_want_to_zoom_in_on", label = "Zoom in on gene!"),
+        actionButton("load_default_input_data", label = "Load default input data (for debugging only!)")
     ),
     body
 )
@@ -142,6 +143,31 @@ server <- function(input, output, session) {
                 fitness_data_path = input$fitness_data$datapath,
                 # annotations_path = "essentiality_table_all_libraries_240818.csv",
                 annotations_path = input$annotation_data$datapath,
+                subset_perc_low = subset_perc_low,
+                subset_perc_high = subset_perc_high
+            )),
+            error = function(e) {
+                print("Loading of data failed, make sure to set both fitness and annotation data...")
+            }
+        )
+
+        ht <- make_heatmap(
+            correlation_matrix
+        )
+        makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
+            brush_action = brush_action
+        )
+    })
+
+    observeEvent(input$load_default_input_data, {
+        subset_perc_low <- as.numeric(str_split(input$range, "_")[[1]][1])
+        subset_perc_high <- as.numeric(str_split(input$range, "_")[[1]][2])
+        tryCatch(
+            assign_list_entries_to_global_env(load_all(
+                fitness_data_path = "Buni_compiled.csv",
+                # fitness_data_path = input$fitness_data$datapath,
+                annotations_path = "essentiality_table_all_libraries_240818.csv",
+                # annotations_path = input$annotation_data$datapath,
                 subset_perc_low = subset_perc_low,
                 subset_perc_high = subset_perc_high
             )),
@@ -194,6 +220,29 @@ server <- function(input, output, session) {
                 return()
             }
             selected <- prep_char_selection(input$genes_to_viz)
+            output[["pairwise_scatters"]] <- renderPlot({
+                make_pw_scatter(fitness_data, selected)
+            })
+            output[["sub_heatmap"]] <- renderPlot({
+                make_sub_heatmap(fitness_data, selected)
+            })
+            output[["res_table"]] <- renderDT(
+                datatable(annotations[selected, ], rownames = TRUE)
+            )
+            output[["current_selection_textbox"]] <- renderText({
+                str_c(rownames(fitness_data)[selected], collapse = ",")
+            })
+        },
+        ignoreNULL = FALSE
+    )
+
+    observeEvent(input$trigger_gene_you_want_to_zoom_in_on,
+        {
+            if (is.null(input$fitness_data)) {
+                return()
+            }
+            # selected <- prep_char_selection(input$genes_to_viz)
+            browser()
             output[["pairwise_scatters"]] <- renderPlot({
                 make_pw_scatter(fitness_data, selected)
             })
