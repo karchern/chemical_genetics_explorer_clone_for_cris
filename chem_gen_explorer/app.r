@@ -127,6 +127,7 @@ ui <- dashboardPage(
         textAreaInput("genes_to_viz", label = "Comma-separated list of genes"),
         actionButton("trigger_genes_to_viz", label = "Subset heatmap!"),
         textInput("gene_you_want_to_zoom_in_on", label = "gene of interest (correlated genes will be highlighted)"),
+        numericInput("number_of_genes_you_want_to_zoom_in_around", "number of genes to correlate", value = 5, min = 0, max = 20),
         actionButton("trigger_gene_you_want_to_zoom_in_on", label = "Zoom in on gene!")
     ),
     body
@@ -239,7 +240,7 @@ server <- function(input, output, session) {
     observeEvent(input$trigger_gene_you_want_to_zoom_in_on,
         {
             gene_index_of_interest <- which(rownames(correlation_matrix) == input$gene_you_want_to_zoom_in_on)
-            selected <- order(correlation_matrix[gene_index_of_interest, ], decreasing = TRUE)[1:5]
+            selected <- order(correlation_matrix[gene_index_of_interest, ], decreasing = TRUE)[1:input$number_of_genes_you_want_to_zoom_in_around]
             output[["pairwise_scatters"]] <- renderPlot({
                 make_pw_scatter(fitness_data, selected)
             })
