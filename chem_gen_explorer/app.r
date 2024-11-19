@@ -138,19 +138,14 @@ server <- function(input, output, session) {
     observeEvent(input$load_input_data, {
         subset_perc_low <- as.numeric(str_split(input$range, "_")[[1]][1])
         subset_perc_high <- as.numeric(str_split(input$range, "_")[[1]][2])
-        tryCatch(
-            assign_list_entries_to_global_env(load_all(
-                # fitness_data_path = "Buni_compiled.csv",
-                fitness_data_path = input$fitness_data$datapath,
-                # annotations_path = "essentiality_table_all_libraries_240818.csv",
-                annotations_path = input$annotation_data$datapath,
-                subset_perc_low = subset_perc_low,
-                subset_perc_high = subset_perc_high
-            )),
-            error = function(e) {
-                print("Loading of data failed, make sure to set both fitness and annotation data...")
-            }
-        )
+        assign_list_entries_to_global_env(load_all(
+            # fitness_data_path = "Buni_compiled.csv",
+            fitness_data_path = input$fitness_data$datapath,
+            # annotations_path = "essentiality_table_all_libraries_240818.csv",
+            annotations_path = input$annotation_data$datapath,
+            subset_perc_low = subset_perc_low,
+            subset_perc_high = subset_perc_high
+        ))
 
         ht <- make_heatmap(
             correlation_matrix
@@ -163,19 +158,14 @@ server <- function(input, output, session) {
     observeEvent(input$load_default_input_data, {
         subset_perc_low <- as.numeric(str_split(input$range, "_")[[1]][1])
         subset_perc_high <- as.numeric(str_split(input$range, "_")[[1]][2])
-        tryCatch(
-            assign_list_entries_to_global_env(load_all(
-                fitness_data_path = "Buni_compiled.csv",
-                # fitness_data_path = input$fitness_data$datapath,
-                annotations_path = "essentiality_table_all_libraries_240818.csv",
-                # annotations_path = input$annotation_data$datapath,
-                subset_perc_low = subset_perc_low,
-                subset_perc_high = subset_perc_high
-            )),
-            error = function(e) {
-                print("Loading of data failed, make sure to set both fitness and annotation data...")
-            }
-        )
+        assign_list_entries_to_global_env(load_all(
+            fitness_data_path = "Buni_compiled.csv",
+            # fitness_data_path = input$fitness_data$datapath,
+            annotations_path = "essentiality_table_all_libraries_240818.csv",
+            # annotations_path = input$annotation_data$datapath,
+            subset_perc_low = subset_perc_low,
+            subset_perc_high = subset_perc_high
+        ))
 
         ht <- make_heatmap(
             correlation_matrix
@@ -185,35 +175,39 @@ server <- function(input, output, session) {
         )
     })
 
-    observeEvent(input$range, {
-        if (is.null(input$fitness_data)) {
-            return()
-        }
-
-        subset_perc_low <- as.numeric(str_split(input$range, "_")[[1]][1])
-        subset_perc_high <- as.numeric(str_split(input$range, "_")[[1]][2])
-
-        tryCatch(
-            assign_list_entries_to_global_env(load_all(
-                # fitness_data_path = "Buni_compiled.csv",
-                fitness_data_path = input$fitness_data$datapath,
-                # annotations_path = "essentiality_table_all_libraries_240818.csv",
-                annotations_path = input$annotation_data$datapath,
-                subset_perc_low = subset_perc_low,
-                subset_perc_high = subset_perc_high
-            )),
-            error = function(e) {
-                print("Loading of data failed, make sure to set both fitness and annotation data...")
+    observeEvent(input$range,
+        {
+            if (is.null(input$fitness_data)) {
+                return()
             }
-        )
 
-        ht <- make_heatmap(
-            correlation_matrix
-        )
-        makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
-            brush_action = brush_action
-        )
-    })
+            subset_perc_low <- as.numeric(str_split(input$range, "_")[[1]][1])
+            subset_perc_high <- as.numeric(str_split(input$range, "_")[[1]][2])
+
+            tryCatch(
+                assign_list_entries_to_global_env(load_all(
+                    # fitness_data_path = "Buni_compiled.csv",
+                    fitness_data_path = input$fitness_data$datapath,
+                    # annotations_path = "essentiality_table_all_libraries_240818.csv",
+                    annotations_path = input$annotation_data$datapath,
+                    subset_perc_low = subset_perc_low,
+                    subset_perc_high = subset_perc_high
+                )),
+                error = function(e) {
+                    print("Loading of data failed, make sure to set both fitness and annotation data...")
+                }
+            )
+
+            ht <- make_heatmap(
+                correlation_matrix
+            )
+            makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
+                brush_action = brush_action
+            )
+        },
+        ignoreNULL = FALSE,
+        ignoreInit = TRUE
+    )
 
     observeEvent(input$trigger_genes_to_viz,
         {
@@ -234,7 +228,8 @@ server <- function(input, output, session) {
                 str_c(rownames(fitness_data)[selected], collapse = ",")
             })
         },
-        ignoreNULL = FALSE
+        ignoreNULL = FALSE,
+        ignoreInit = TRUE
     )
 
     observeEvent(input$trigger_gene_you_want_to_zoom_in_on,
