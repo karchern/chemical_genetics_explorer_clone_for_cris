@@ -232,6 +232,7 @@ server <- function(input, output, session) {
         ignoreInit = TRUE
     )
 
+
     observeEvent(input$trigger_gene_you_want_to_zoom_in_on,
         {
             gene_index_of_interest <- which(rownames(correlation_matrix) == input$gene_you_want_to_zoom_in_on)
