@@ -88,6 +88,6 @@ get_top_clusters <- function(cor_matrix = NULL,
 # This will run for a few minutes
 top_clusters <- get_top_clusters(
     cor_matrix,
-    dist(cor_matrix)
+    dist(cor_matrix),
     n_top_joins = 100 # Sensible default
 )
