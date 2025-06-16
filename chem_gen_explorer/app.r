@@ -115,12 +115,12 @@ ui <- dashboardPage(
         radioButtons("range",
             label = "Which part of the correlation matrix to show?",
             choices = list(
+                "Everything" = "0_100",
                 "1st 20%" = "0_20",
                 "2nd 20%" = "19_40",
                 "3rd 20%" = "39_60",
                 "4th 20%" = "59_80",
-                "5th 20%" = "79_100",
-                "Everything" = "0_100"
+                "5th 20%" = "79_100"
             ),
         ),
         fileInput("fitness_data", "Upload fitness table"),
