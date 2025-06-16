@@ -25,19 +25,32 @@ annot_columns_of_interest_colors <- map(
 names(annot_columns_of_interest_colors) <- annot_columns_of_interest
 
 
-load_fitness_data <- function(path) {
+load_fitness_data <- function(path, load_what = NULL) {
     data <- read_csv(path) %>%
         select(Name, scaledLFC, contrast, FDR) %>%
         rename(
             gene = Name,
-            log2fc_scaled = scaledLFC,
             condition = contrast,
             fdr = FDR
-        ) %>%
-        mutate(log2fc_scaled_empbayes = log2fc_scaled * (1 - fdr)) %>%
-        pivot_wider(names_from = condition, id_cols = gene, values_from = log2fc_scaled_empbayes, values_fill = 0) %>%
-        column_to_rownames("gene") %>%
-        as.matrix()
+        )
+    if (is.null(load_what) || load_what == "EB") {
+        data <- data %>%
+            mutate(scaledLFC_empbayes = scaledLFC * (1 - fdr)) %>%
+            pivot_wider(names_from = condition, id_cols = gene, values_from = scaledLFC_empbayes, values_fill = 0) %>%
+            column_to_rownames("gene") %>%
+            as.matrix()
+    } else if (load_what == "scaledLFC") {
+        data <- data %>%
+            pivot_wider(names_from = condition, id_cols = gene, values_from = scaledLFC, values_fill = 0) %>%
+            column_to_rownames("gene") %>%
+            as.matrix()
+    } else {
+        print(str_c("Trying to load ", load_what, "..."))
+        data <- data %>%
+            pivot_wider(names_from = condition, id_cols = gene, values_from = .data[[load_what]], values_fill = 0) %>%
+            column_to_rownames("gene") %>%
+            as.matrix()
+    }
     return(data)
 }
 
@@ -100,8 +113,9 @@ load_all <- function(
     annotations_path = NULL,
     subset_perc_low = NULL,
     subset_perc_high = NULL,
+    load_what = NULL,
     cor_meth = "pearson") {
-    fitness_data <- load_fitness_data(fitness_data_path)
+    fitness_data <- load_fitness_data(fitness_data_path, load_what = load_what)
     fi <- get_indices_from_heatmap_range(nrow(fitness_data), subset_perc_low, subset_perc_high)
     fitness_data <- fitness_data[fi$i_low:fi$i_high, ]
     annotations <- load_annotations(annotations_path, fitness_data)

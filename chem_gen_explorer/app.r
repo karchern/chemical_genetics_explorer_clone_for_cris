@@ -106,6 +106,8 @@ brush_action <- function(df, input, output, session) {
     })
 }
 
+effect_size_names <- c("scaledLFC", "EB")
+
 ui <- dashboardPage(
     dashboardHeader(title = "Chemical genetics data explorer"),
     dashboardSidebar(
@@ -123,6 +125,7 @@ ui <- dashboardPage(
         ),
         fileInput("fitness_data", "Upload fitness table"),
         fileInput("annotation_data", "Upload annotation table"),
+        radioButtons("effect_size_name", "Column name holding effect\nsize to use for correlation (if EB, make sure you have a\ncolumn holding q-values called FDR)", effect_size_names),
         actionButton("load_input_data", label = "Load input data"),
         textAreaInput("genes_to_viz", label = "Comma-separated list of genes"),
         actionButton("trigger_genes_to_viz", label = "Subset heatmap!"),
@@ -145,7 +148,8 @@ server <- function(input, output, session) {
                 # annotations_path = "essentiality_table_all_libraries_240818.csv",
                 annotations_path = input$annotation_data$datapath,
                 subset_perc_low = subset_perc_low,
-                subset_perc_high = subset_perc_high
+                subset_perc_high = subset_perc_high,
+                load_what = input$effect_size_name
             )),
             error = function(e) {
                 print("Loading of data failed, make sure to set both fitness and annotation data...")
@@ -170,7 +174,8 @@ server <- function(input, output, session) {
                 annotations_path = "essentiality_table_all_libraries_240818.csv",
                 # annotations_path = input$annotation_data$datapath,
                 subset_perc_low = subset_perc_low,
-                subset_perc_high = subset_perc_high
+                subset_perc_high = subset_perc_high,
+                load_what = input$effect_size_name
             )),
             error = function(e) {
                 print("Loading of data failed, make sure to set both fitness and annotation data...")
@@ -200,7 +205,8 @@ server <- function(input, output, session) {
                 # annotations_path = "essentiality_table_all_libraries_240818.csv",
                 annotations_path = input$annotation_data$datapath,
                 subset_perc_low = subset_perc_low,
-                subset_perc_high = subset_perc_high
+                subset_perc_high = subset_perc_high,
+                load_what = input$effect_size_name
             )),
             error = function(e) {
                 print("Loading of data failed, make sure to set both fitness and annotation data...")
