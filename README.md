@@ -24,6 +24,10 @@ from the command line.
 
 ## Usage
 
+To use the app, you'll need two files:
+- File containing, for each pair of gene and mutant, effect size as well as q-value/FDR values (the last part is only necessary if you want to use empirical bayes-corrected effect size values, default is to use the (scaled) LFC values). The crucial column names are Name (==gene), scaledLFC (==effect size), contrast (==condition)
+- File containing functional annotations. The file that contains functional annotations of your choice (for allowed column names see the app upon startup). The gene name in the file above (column Name there) should here be contained in a column called `locus tag`.
+
 Access the shiny app by ging to `http://0.0.0.0:3838` in your browser.
 
 TODO

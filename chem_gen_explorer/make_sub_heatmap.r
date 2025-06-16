@@ -4,7 +4,7 @@ make_sub_heatmap <- function(
     tryCatch(
         expr = {
             ht <- Heatmap(t(res[highlight, ]),
-                top_annotation = HeatmapAnnotation(df = annotations_boolean[highlight, ], col = annot_columns_of_interest_colors, show_legend = FALSE),
+                top_annotation = HeatmapAnnotation(df = annotations_boolean[highlight, ], show_legend = FALSE),
                 name = " ",
                 show_row_names = TRUE, show_column_names = TRUE,
                 show_row_dend = FALSE, show_column_dend = FALSE,

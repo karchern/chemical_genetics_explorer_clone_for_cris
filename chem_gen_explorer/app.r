@@ -125,6 +125,35 @@ ui <- dashboardPage(
         ),
         fileInput("fitness_data", "Upload fitness table"),
         fileInput("annotation_data", "Upload annotation table"),
+        checkboxGroupInput(
+            "annot_columns_of_interest",
+            label = "Select annotation columns of interest:",
+            choices = c(
+                "locus_tag" = "locus_tag",
+                "gene_name" = "gene_name",
+                "product" = "product",
+                "uniProt" = "uniProt",
+                "eggNOG_OGs_Bacteria" = "eggNOG_OGs_Bacteria",
+                "eggNOG_OGs_Bacteroidia" = "eggNOG_OGs_Bacteroidia",
+                "EggNOG_PFAMs" = "EggNOG_PFAMs",
+                "eggNOG_OGs" = "eggNOG_OGs",
+                "EggNOG_KEGG_Pathway" = "EggNOG_KEGG_Pathway",
+                "EggNOG_KEGG_Module" = "EggNOG_KEGG_Module",
+                "EggNOG_KEGG_ko" = "EggNOG_KEGG_ko",
+                "EggNOG_GOs" = "EggNOG_GOs"
+            ),
+            selected = c(
+                "locus_tag",
+                "gene_name",
+                "product",
+                "uniProt",
+                "EggNOG_PFAMs",
+                "EggNOG_KEGG_Pathway",
+                "EggNOG_KEGG_Module",
+                "EggNOG_KEGG_ko"
+            ),
+            inline = TRUE
+        ),
         radioButtons("effect_size_name", "Column name holding effect\nsize to use for correlation (if EB, make sure you have a\ncolumn holding q-values called FDR)", effect_size_names),
         actionButton("load_input_data", label = "Load input data"),
         textAreaInput("genes_to_viz", label = "Comma-separated list of genes"),
@@ -158,7 +187,8 @@ server <- function(input, output, session) {
                 annotations_path = input$annotation_data$datapath,
                 subset_perc_low = subset_perc_low,
                 subset_perc_high = subset_perc_high,
-                load_what = input$effect_size_name
+                load_what = input$effect_size_name,
+                annot_columns_of_interest = input$annot_columns_of_interest
             )),
             error = function(e) {
                 print("Loading of data failed, make sure to set both fitness and annotation data...")
@@ -184,7 +214,8 @@ server <- function(input, output, session) {
                 # annotations_path = input$annotation_data$datapath,
                 subset_perc_low = subset_perc_low,
                 subset_perc_high = subset_perc_high,
-                load_what = input$effect_size_name
+                load_what = input$effect_size_name,
+                annot_columns_of_interest = input$annot_columns_of_interest
             )),
             error = function(e) {
                 print("Loading of data failed, make sure to set both fitness and annotation data...")
@@ -215,7 +246,8 @@ server <- function(input, output, session) {
                 annotations_path = input$annotation_data$datapath,
                 subset_perc_low = subset_perc_low,
                 subset_perc_high = subset_perc_high,
-                load_what = input$effect_size_name
+                load_what = input$effect_size_name,
+                annot_columns_of_interest = input$annot_columns_of_interest
             )),
             error = function(e) {
                 print("Loading of data failed, make sure to set both fitness and annotation data...")
@@ -262,7 +294,6 @@ server <- function(input, output, session) {
             } else {
                 stop("Unknown type of correlation selected.")
             }
-
             output[["pairwise_scatters"]] <- renderPlot({
                 make_pw_scatter(fitness_data, selected)
             })

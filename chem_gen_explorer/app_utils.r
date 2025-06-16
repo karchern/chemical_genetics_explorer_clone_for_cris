@@ -1,19 +1,19 @@
 library(tidyverse)
 
-annot_columns_of_interest <- c(
-    "locus_tag",
-    "gene_name",
-    "product",
-    "uniProt",
-    # "eggNOG_OGs_Bacteria",
-    # "eggNOG_OGs_Bacteroidia",
-    "EggNOG_PFAMs",
-    # "eggNOG_OGs",
-    "EggNOG_KEGG_Pathway",
-    "EggNOG_KEGG_Module",
-    "EggNOG_KEGG_ko"
-    # "EggNOG_GOs"
-)
+# annot_columns_of_interest <- c(
+#     "locus_tag",
+#     "gene_name",
+#     "product",
+#     "uniProt",
+#     # "eggNOG_OGs_Bacteria",
+#     # "eggNOG_OGs_Bacteroidia",
+#     "EggNOG_PFAMs",
+#     # "eggNOG_OGs",
+#     "EggNOG_KEGG_Pathway",
+#     "EggNOG_KEGG_Module",
+#     "EggNOG_KEGG_ko"
+#     # "EggNOG_GOs"
+# )
 
 annot_columns_of_interest_colors <- map(
     annot_columns_of_interest,
@@ -53,7 +53,7 @@ load_fitness_data <- function(path, load_what = NULL) {
     return(data)
 }
 
-load_annotations <- function(path, fitness_data = NULL) {
+load_annotations <- function(path, fitness_data = NULL, annot_columns_of_interest = NULL) {
     annotations <- read_csv(path)
     annotations <- annotations[annotations$locus_tag %in% rownames(fitness_data), ] %>%
         select(
@@ -113,11 +113,12 @@ load_all <- function(
     subset_perc_low = NULL,
     subset_perc_high = NULL,
     load_what = NULL,
+    annot_columns_of_interest = NULL,
     cor_meth = "pearson") {
     fitness_data <- load_fitness_data(fitness_data_path, load_what = load_what)
     fi <- get_indices_from_heatmap_range(nrow(fitness_data), subset_perc_low, subset_perc_high)
     fitness_data <- fitness_data[fi$i_low:fi$i_high, ]
-    annotations <- load_annotations(annotations_path, fitness_data)
+    annotations <- load_annotations(annotations_path, fitness_data, annot_columns_of_interest)
     annotations_boolean <- annotations %>%
         mutate_all(make_annot_col_bool)
     correlation_matrix <- cor(t(fitness_data), method = cor_meth)
