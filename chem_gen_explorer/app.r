@@ -14,7 +14,7 @@ source("make_pw_scatter.r")
 
 env <- new.env() # This is crucial for this app, so don't remove!
 
-options(shiny.maxRequestSize = 30 * 1024^2)
+options(shiny.maxRequestSize = 250 * 1024^2)
 
 make_heatmap <- function(correlation_matrix = NULL, dendrogram) {
     env$row_index <- 1:dim(correlation_matrix)[1]
