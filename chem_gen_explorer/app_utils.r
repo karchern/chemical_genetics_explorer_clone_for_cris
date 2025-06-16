@@ -27,15 +27,14 @@ names(annot_columns_of_interest_colors) <- annot_columns_of_interest
 
 load_fitness_data <- function(path, load_what = NULL) {
     data <- read_csv(path) %>%
-        select(Name, scaledLFC, contrast, FDR) %>%
+        select(Name, scaledLFC, contrast) %>%
         rename(
             gene = Name,
-            condition = contrast,
-            fdr = FDR
+            condition = contrast
         )
     if (is.null(load_what) || load_what == "EB") {
         data <- data %>%
-            mutate(scaledLFC_empbayes = scaledLFC * (1 - fdr)) %>%
+            mutate(scaledLFC_empbayes = scaledLFC * (1 - FDR)) %>%
             pivot_wider(names_from = condition, id_cols = gene, values_from = scaledLFC_empbayes, values_fill = 0) %>%
             column_to_rownames("gene") %>%
             as.matrix()
