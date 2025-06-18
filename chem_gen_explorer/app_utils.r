@@ -15,14 +15,14 @@ library(tidyverse)
 #     # "EggNOG_GOs"
 # )
 
-annot_columns_of_interest_colors <- map(
-    annot_columns_of_interest,
-    \(x) {
-        # return(c("Not annotated" = "blue", "Annotated" = "green"))
-        return(c("No annot." = "#CCCCCC", "Annot" = "darkgreen"))
-    }
-)
-names(annot_columns_of_interest_colors) <- annot_columns_of_interest
+# annot_columns_of_interest_colors <- map(
+#     annot_columns_of_interest,
+#     \(x) {
+#         # return(c("Not annotated" = "blue", "Annotated" = "green"))
+#         return(c("No annot." = "#CCCCCC", "Annot" = "darkgreen"))
+#     }
+# )
+# names(annot_columns_of_interest_colors) <- annot_columns_of_interest
 
 
 load_fitness_data <- function(path, load_what = NULL) {
