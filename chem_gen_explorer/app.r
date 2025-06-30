@@ -20,8 +20,11 @@ make_heatmap <- function(correlation_matrix = NULL, dendrogram) {
     env$row_index <- 1:dim(correlation_matrix)[1]
     env$column_index <- 1:dim(correlation_matrix)[2]
 
+
     ht <- Heatmap(correlation_matrix,
         name = "effect size",
+        cluster_rows = dendrogram,
+        cluster_columns = dendrogram,
         show_row_names = FALSE, show_column_names = FALSE,
         show_row_dend = FALSE
     )
@@ -125,6 +128,7 @@ ui <- dashboardPage(
         ),
         fileInput("fitness_data", "Upload fitness table"),
         fileInput("annotation_data", "Upload annotation table"),
+        fileInput("precomputed_dendrogram", "Precomputed dendrogram (optional)", accept = c(".rds", ".RData", ".RDS", ".rdata")),
         checkboxGroupInput(
             "annot_columns_of_interest",
             label = "Select annotation columns of interest:",
@@ -185,6 +189,7 @@ server <- function(input, output, session) {
                 fitness_data_path = input$fitness_data$datapath,
                 # annotations_path = "essentiality_table_all_libraries_240818.csv",
                 annotations_path = input$annotation_data$datapath,
+                dendrogram_path = input$precomputed_dendrogram$datapath,
                 subset_perc_low = subset_perc_low,
                 subset_perc_high = subset_perc_high,
                 load_what = input$effect_size_name,
@@ -196,7 +201,8 @@ server <- function(input, output, session) {
         )
 
         ht <- make_heatmap(
-            correlation_matrix
+            correlation_matrix,
+            hclust_object
         )
         makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
             brush_action = brush_action
@@ -212,6 +218,7 @@ server <- function(input, output, session) {
                 # fitness_data_path = input$fitness_data$datapath,
                 annotations_path = "essentiality_table_all_libraries_240818.csv",
                 # annotations_path = input$annotation_data$datapath,
+                dendrogram_path = input$precomputed_dendrogram$datapath,
                 subset_perc_low = subset_perc_low,
                 subset_perc_high = subset_perc_high,
                 load_what = input$effect_size_name,
@@ -223,7 +230,8 @@ server <- function(input, output, session) {
         )
 
         ht <- make_heatmap(
-            correlation_matrix
+            correlation_matrix,
+            hclust_object
         )
         makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
             brush_action = brush_action
@@ -244,6 +252,7 @@ server <- function(input, output, session) {
                 fitness_data_path = input$fitness_data$datapath,
                 # annotations_path = "essentiality_table_all_libraries_240818.csv",
                 annotations_path = input$annotation_data$datapath,
+                dendrogram_path = input$precomputed_dendrogram$datapath,
                 subset_perc_low = subset_perc_low,
                 subset_perc_high = subset_perc_high,
                 load_what = input$effect_size_name,
@@ -255,7 +264,8 @@ server <- function(input, output, session) {
         )
 
         ht <- make_heatmap(
-            correlation_matrix
+            correlation_matrix,
+            hclust_object
         )
         makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
             brush_action = brush_action

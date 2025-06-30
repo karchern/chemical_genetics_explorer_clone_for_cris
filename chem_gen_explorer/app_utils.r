@@ -110,6 +110,7 @@ get_indices_from_heatmap_range <- function(num_rows, subset_perc_low, subset_per
 load_all <- function(
     fitness_data_path = NULL,
     annotations_path = NULL,
+    dendrogram_path = NULL,
     subset_perc_low = NULL,
     subset_perc_high = NULL,
     load_what = NULL,
@@ -122,7 +123,14 @@ load_all <- function(
     annotations_boolean <- annotations %>%
         mutate_all(make_annot_col_bool)
     correlation_matrix <- cor(t(fitness_data), method = cor_meth)
-    hclusto <- hclust(dist(correlation_matrix))
+    if (is.null(dendrogram_path)) {
+        print("Computing dendrogram")
+        hclusto <- hclust(dist(correlation_matrix))
+    } else {
+        print("Reading precomputed dendrogram")
+        hclusto <- readRDS(dendrogram_path)
+    }
+
     ensure_data_concordance()
     return(
         list(
