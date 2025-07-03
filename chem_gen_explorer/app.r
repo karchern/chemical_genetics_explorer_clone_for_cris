@@ -163,7 +163,7 @@ ui <- dashboardPage(
         textAreaInput("genes_to_viz", label = "Comma-separated list of genes"),
         actionButton("trigger_genes_to_viz", label = "Subset heatmap!"),
         textInput("gene_you_want_to_zoom_in_on", label = "gene of interest (correlated genes will be highlighted)"),
-        numericInput("number_of_genes_you_want_to_zoom_in_around", "number of genes to correlate", value = 5, min = 0, max = 20),
+        numericInput("number_of_genes_you_want_to_zoom_in_around", "number of genes to correlate", value = 5, min = 0, max = 1000),
         radioButtons(
             "type_of_correlation",
             label = "Select correlation type:",
