@@ -173,6 +173,16 @@ ui <- dashboardPage(
             ),
             selected = "correlated"
         ),
+        selectInput(
+            "genes_to_not_show_from_most_correlated_genes",
+            "Which gene(s) would you like to exclude from the most correlated genes?",
+            choices = NULL,
+            multiple = TRUE,
+        ),
+        textInput(
+            "comma_sep_list_reverse_grep",
+            label = "You can also specify a comma-separated list of substrings you'd like to exclude from the correlated genes",
+        ),
         actionButton("trigger_gene_you_want_to_zoom_in_on", label = "Zoom in on gene!")
     ),
     body
@@ -204,6 +214,11 @@ server <- function(input, output, session) {
             correlation_matrix,
             hclust_object
         )
+        updateSelectInput(
+            session,
+            "genes_to_not_show_from_most_correlated_genes",
+            choices = get_gene_names()
+        )
         makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
             brush_action = brush_action
         )
@@ -232,6 +247,11 @@ server <- function(input, output, session) {
         ht <- make_heatmap(
             correlation_matrix,
             hclust_object
+        )
+        updateSelectInput(
+            session,
+            "genes_to_not_show_from_most_correlated_genes",
+            choices = get_gene_names()
         )
         makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
             brush_action = brush_action
@@ -266,6 +286,11 @@ server <- function(input, output, session) {
         ht <- make_heatmap(
             correlation_matrix,
             hclust_object
+        )
+        updateSelectInput(
+            session,
+            "genes_to_not_show_from_most_correlated_genes",
+            choices = get_gene_names()
         )
         makeInteractiveComplexHeatmap(input, output, session, ht, "ht",
             brush_action = brush_action
@@ -303,6 +328,15 @@ server <- function(input, output, session) {
                 selected <- c(gene_index_of_interest, order(correlation_matrix[gene_index_of_interest, ], decreasing = FALSE)[1:(input$number_of_genes_you_want_to_zoom_in_around - 1)])
             } else {
                 stop("Unknown type of correlation selected.")
+            }
+            selected <- setdiff(selected, which(rownames(fitness_data) %in% input$genes_to_not_show_from_most_correlated_genes))
+            comma_sep_anti_grep <- input$comma_sep_list_reverse_grep
+            if (!(is.null(comma_sep_anti_grep) || comma_sep_anti_grep == "")) {
+                comma_sep_anti_grep <- str_replace_all(comma_sep_anti_grep, " ", "")
+                comma_sep_anti_grep <- str_split(comma_sep_anti_grep, ",")[[1]]
+                for (entry in comma_sep_anti_grep) {
+                    selected <- selected[!str_detect(rownames(fitness_data)[selected], entry)]
+                }
             }
             output[["pairwise_scatters"]] <- renderPlot({
                 make_pw_scatter(fitness_data, selected)

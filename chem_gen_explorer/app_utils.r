@@ -150,3 +150,12 @@ assign_list_entries_to_global_env <- function(li) {
         assign(na, entry, .GlobalEnv)
     }
 }
+
+get_gene_names <- reactive(
+    # Check if object fitness_data exists in the environment
+    if (!exists("fitness_data")) {
+        return(NULL)
+    } else {
+        return(sort(rownames(fitness_data)))
+    }
+)
